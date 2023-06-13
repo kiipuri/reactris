@@ -112,7 +112,7 @@ export default function Board() {
     () => {
       function doMove(key: React.KeyboardEvent) {
         move(key);
-        setDelay(20);
+        setDelay(1);
       }
 
       if (Object.values(heldKeys).some(key => key) && heldKey) doMove(heldKey);
@@ -151,6 +151,21 @@ export default function Board() {
         setHeldKeys(heldKeys);
         setHeldKey(key);
         setDelay(20);
+        break;
+
+      case "Space":
+        player.tetromino.grid.forEach((row, y) =>
+          row.forEach((cell, x) => {
+            if (!cell) return;
+
+            board[lowestPoint + y][player.pos.x + x] = {
+              color: player.tetromino.color,
+              filled: true,
+              transparent: false,
+            };
+          })
+        );
+        resetPlayer();
         break;
 
       case "ArrowUp":
