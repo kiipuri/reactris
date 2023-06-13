@@ -3,15 +3,14 @@ import { Color } from "../components/Cell";
 type Tetrominos = {
   // [key: string]: number[][];
   [key: string]: {
-    [key: string]: number[][] | Color;
-    shape: number[][];
+    grid: number[][];
     color: Color;
   };
 };
 
 export const tetrominos: Tetrominos = {
   I: {
-    shape: [
+    grid: [
       [0, 0, 0, 0],
       [1, 1, 1, 1],
       [0, 0, 0, 0],
@@ -20,7 +19,7 @@ export const tetrominos: Tetrominos = {
     color: Color.Cyan,
   },
   J: {
-    shape: [
+    grid: [
       [1, 0, 0],
       [1, 1, 1],
       [0, 0, 0],
@@ -28,7 +27,7 @@ export const tetrominos: Tetrominos = {
     color: Color.Blue,
   },
   L: {
-    shape: [
+    grid: [
       [0, 0, 1],
       [1, 1, 1],
       [0, 0, 0],
@@ -36,14 +35,14 @@ export const tetrominos: Tetrominos = {
     color: Color.Orange,
   },
   O: {
-    shape: [
+    grid: [
       [1, 1],
       [1, 1],
     ],
     color: Color.Yellow,
   },
   S: {
-    shape: [
+    grid: [
       [0, 1, 1],
       [1, 1, 0],
       [0, 0, 0],
@@ -51,7 +50,7 @@ export const tetrominos: Tetrominos = {
     color: Color.Green,
   },
   Z: {
-    shape: [
+    grid: [
       [1, 1, 0],
       [0, 1, 1],
       [0, 0, 0],
@@ -59,7 +58,7 @@ export const tetrominos: Tetrominos = {
     color: Color.Red,
   },
   T: {
-    shape: [
+    grid: [
       [0, 1, 0],
       [1, 1, 1],
       [0, 0, 0],

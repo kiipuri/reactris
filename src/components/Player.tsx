@@ -1,27 +1,39 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { kicks_i, kicks_jltsz } from "../helpers/kicks";
 import { tetrominos } from "../helpers/tetrominos";
 import { boardSize } from "./Board";
 import { CellData, Color } from "./Cell";
 
 export default function Player() {
-  const keys = Object.keys(tetrominos);
-  const shape = keys[(keys.length * Math.random()) << 0];
-  const tetromino = {
-    shape,
-    grid: tetrominos[shape].shape,
-    color: tetrominos[shape].color,
-    orientation: 0,
-  };
+  const [bag, setBag] = useState(getRandomizedBag());
+  const [nextBag, setNextBag] = useState(getRandomizedBag());
+  const key = bag[0];
+  const tetromino = { ...tetrominos[key] };
 
   const [player, setPlayer] = useState({
     pos: { x: 0, y: 0 },
-    tetromino: tetromino,
+    tetromino: {
+      shape: key,
+      grid: tetromino.grid,
+      color: tetromino.color,
+      orientation: 0,
+    },
     merged: false,
   });
 
   useEffect(() => {
     resetPlayer();
   }, []);
+
+  function getRandomizedBag() {
+    return Object.keys(tetrominos)
+      .map(key => ({
+        key,
+        sort: Math.random(),
+      }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ key }) => key);
+  }
 
   function updatePosition(pos: { x: number; y: number }, board: CellData[][]) {
     const [collided, shouldMerge] = testCollision(pos, board);
@@ -88,7 +100,7 @@ export default function Player() {
 
   function rotate(dir: number) {
     // cant deep copy with fking js
-    let tetromino = tetrominos[player.tetromino.shape].shape.map(inner =>
+    let tetromino = tetrominos[player.tetromino.shape].grid.map(inner =>
       inner.slice()
     );
 
@@ -124,138 +136,11 @@ export default function Player() {
   }
 
   function rotatePlayer(dir: number, board: CellData[][]) {
-    type Kicks = {
-      [key: number]: {
-        [key: number]: {
-          x: number;
-          y: number;
-        }[];
-      };
-    };
-
-    const kicks_jltsz: Kicks = {
-      0: {
-        1: [
-          { x: -1, y: 0 },
-          { x: -1, y: -1 },
-          { x: 0, y: 2 },
-          { x: -1, y: 2 },
-        ],
-        3: [
-          { x: 1, y: 0 },
-          { x: 1, y: -1 },
-          { x: 0, y: 2 },
-          { x: 1, y: 2 },
-        ],
-      },
-      1: {
-        0: [
-          { x: 1, y: 0 },
-          { x: 1, y: 1 },
-          { x: 0, y: -2 },
-          { x: 1, y: -2 },
-        ],
-        2: [
-          { x: 1, y: 0 },
-          { x: 1, y: 1 },
-          { x: 0, y: -2 },
-          { x: 1, y: -2 },
-        ],
-      },
-      2: {
-        1: [
-          { x: -1, y: 0 },
-          { x: -1, y: -1 },
-          { x: 0, y: 2 },
-          { x: -1, y: 2 },
-        ],
-        3: [
-          { x: 1, y: 0 },
-          { x: 1, y: -1 },
-          { x: 0, y: 2 },
-          { x: 1, y: 2 },
-        ],
-      },
-      3: {
-        2: [
-          { x: -1, y: 0 },
-          { x: -1, y: 1 },
-          { x: 0, y: -2 },
-          { x: -1, y: -2 },
-        ],
-        0: [
-          { x: -1, y: 0 },
-          { x: -1, y: 1 },
-          { x: 0, y: -2 },
-          { x: -1, y: -2 },
-        ],
-      },
-    };
-
-    const kicks_i: Kicks = {
-      0: {
-        1: [
-          { x: -2, y: 0 },
-          { x: 1, y: 0 },
-          { x: -2, y: 1 },
-          { x: 1, y: -2 },
-        ],
-        3: [
-          { x: -1, y: 0 },
-          { x: 2, y: 0 },
-          { x: -1, y: -2 },
-          { x: 2, y: 1 },
-        ],
-      },
-      1: {
-        0: [
-          { x: 2, y: 0 },
-          { x: -1, y: 0 },
-          { x: 2, y: -1 },
-          { x: -1, y: 2 },
-        ],
-        2: [
-          { x: -1, y: 0 },
-          { x: 2, y: 0 },
-          { x: -1, y: -2 },
-          { x: 2, y: 1 },
-        ],
-      },
-      2: {
-        1: [
-          { x: 1, y: 0 },
-          { x: -2, y: 0 },
-          { x: 1, y: 2 },
-          { x: -2, y: -1 },
-        ],
-        3: [
-          { x: 2, y: 0 },
-          { x: -1, y: 0 },
-          { x: 2, y: -1 },
-          { x: -1, y: 2 },
-        ],
-      },
-      3: {
-        2: [
-          { x: -2, y: 0 },
-          { x: 1, y: 0 },
-          { x: -2, y: 1 },
-          { x: 1, y: -2 },
-        ],
-        0: [
-          { x: 1, y: 0 },
-          { x: -2, y: 0 },
-          { x: 1, y: 2 },
-          { x: -2, y: -1 },
-        ],
-      },
-    };
-
     const tetromino = rotate(dir);
 
     let pos = { x: 0, y: 0 };
     if (testCollision({ x: 0, y: 0 }, board, tetromino)[0]) {
-      const kicks = player.tetromino.shape === "I" ? kicks_i : kicks_jltsz;
+      const kicks = key === "I" ? kicks_i : kicks_jltsz;
       const kick_tests =
         kicks[player.tetromino.orientation][
           (player.tetromino.orientation + dir + 4) % 4
@@ -289,6 +174,24 @@ export default function Player() {
   }
 
   function resetPlayer() {
+    const key = bag[0];
+    const shape = { ...tetrominos[key] };
+    bag.shift();
+
+    if (bag.length === 0) {
+      bag.push(...nextBag);
+      setNextBag(getRandomizedBag());
+    }
+
+    setBag([...bag]);
+
+    const tetromino = {
+      shape: key,
+      grid: shape.grid,
+      color: shape.color,
+      orientation: 0,
+    };
+
     setPlayer({
       pos: {
         x: boardSize.width / 2 - Math.ceil(tetromino.grid[0].length / 2),
@@ -297,8 +200,6 @@ export default function Player() {
       merged: false,
       tetromino: {
         ...tetromino,
-        // shape: "I",
-        // grid: tetrominos.I,
       },
     });
   }
@@ -309,5 +210,7 @@ export default function Player() {
     updatePosition,
     resetPlayer,
     rotatePlayer,
+    bag,
+    nextBag,
   ] as const;
 }

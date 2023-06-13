@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Cell, CellData, Color } from "./Cell";
 import styled from "styled-components";
 import Player from "./Player";
+import { tetrominos } from "../helpers/tetrominos";
 
 export const boardSize = {
   width: 10,
@@ -20,8 +21,15 @@ export default function Board() {
     )
   );
 
-  const [player, setPlayer, updatePosition, resetPlayer, rotatePlayer] =
-    Player();
+  const [
+    player,
+    setPlayer,
+    updatePosition,
+    resetPlayer,
+    rotatePlayer,
+    bag,
+    nextBag,
+  ] = Player();
 
   board.forEach(row =>
     row.forEach(cell => {
@@ -88,7 +96,7 @@ export default function Board() {
 
       if (Object.values(heldKeys).some(key => key) && heldKey) doMove(heldKey);
     },
-    Object.values(heldKeys).some(key => key) ? 10 : 0
+    Object.values(heldKeys).some(key => key) ? 100 : 0
   );
 
   const stopRepeat = (keycode: string) => {
@@ -140,6 +148,14 @@ export default function Board() {
     }
   };
 
+  const [nextPieces, setNextPieces] = useState<string[]>([]);
+  useEffect(() => {
+    const _nextPieces = [];
+    _nextPieces.push(...bag.slice(0, 5));
+    _nextPieces.push(...nextBag.slice(0, 5 - _nextPieces.length));
+    setNextPieces(_nextPieces);
+  }, [bag]);
+
   const divRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (divRef.current) {
@@ -148,18 +164,41 @@ export default function Board() {
   }, []);
 
   return (
-    <StyledBoard
-      width={boardSize.width}
-      ref={divRef}
-      tabIndex={0}
-      onKeyUp={e => stopRepeat(e.code)}
-      onKeyDown={e => move(e)}>
-      {board.map(row => {
-        return row.map((cell, key) => {
-          return <Cell color={cell.color} key={key} />;
-        });
-      })}
-    </StyledBoard>
+    <>
+      <StyledBoard
+        width={boardSize.width}
+        ref={divRef}
+        tabIndex={0}
+        onKeyUp={e => stopRepeat(e.code)}
+        onKeyDown={e => move(e)}>
+        {board.map(row => {
+          return row.map((cell, key) => {
+            return <Cell color={cell.color} key={key} />;
+          });
+        })}
+      </StyledBoard>
+      <div>
+        {nextPieces.map((shape, i) => {
+          return (
+            <StyledNextPiece
+              width={tetrominos[shape].grid.length}
+              height={20}
+              key={i}>
+              {tetrominos[shape].grid.map(row => {
+                return row.map((cell, key) => {
+                  return (
+                    <Cell
+                      color={cell ? tetrominos[shape].color : Color.Empty}
+                      key={key}
+                    />
+                  );
+                });
+              })}
+            </StyledNextPiece>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -167,5 +206,13 @@ const StyledBoard = styled.div<{ width: number }>`
   display: grid;
   grid-template-columns: repeat(${props => props.width}, auto);
   width: ${props => 50 * props.width}px;
+  border: 2px solid red;
+  float: left;
+`;
+
+const StyledNextPiece = styled.div<{ height: number; width: number }>`
+  display: grid;
+  grid-template-columns: repeat(${props => props.width}, auto);
+  width: ${props => props.height * props.width}px;
   border: 2px solid red;
 `;
