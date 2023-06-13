@@ -59,7 +59,7 @@ export default function Board() {
   };
   const [heldKeys, setHeldKeys] = useState<keyHeldType>({});
 
-  function useInterval(callback: any, delay: number) {
+  function useInterval(callback: any, delay: number | null) {
     const savedCallback = useRef<typeof callback>();
     // Remember the latest callback.
     useEffect(() => {
@@ -88,20 +88,24 @@ export default function Board() {
     drop();
   }, 500);
 
+  const [delay, setDelay] = useState(133);
+  const keyIsHeld = Object.values(heldKeys).some(key => key);
   useInterval(
     () => {
       function doMove(key: React.KeyboardEvent) {
         move(key);
+        setDelay(20);
       }
 
       if (Object.values(heldKeys).some(key => key) && heldKey) doMove(heldKey);
     },
-    Object.values(heldKeys).some(key => key) ? 100 : 0
+    keyIsHeld ? delay : null
   );
 
   const stopRepeat = (keycode: string) => {
     heldKeys[keycode] = false;
     setHeldKeys(heldKeys);
+    setDelay(133);
   };
 
   const move = (key: React.KeyboardEvent) => {
@@ -111,20 +115,24 @@ export default function Board() {
     switch (keycode) {
       case "ArrowLeft":
         updatePosition({ x: -1, y: 0 }, board);
-        setHeldKey(key);
         heldKeys[keycode] = true;
         setHeldKeys(heldKeys);
+        setHeldKey(key);
         break;
 
       case "ArrowRight":
         updatePosition({ x: 1, y: 0 }, board);
         heldKeys[keycode] = true;
+        setHeldKeys(heldKeys);
         setHeldKey(key);
         break;
+
       case "ArrowDown":
         updatePosition({ x: 0, y: 1 }, board);
         heldKeys[keycode] = true;
+        setHeldKeys(heldKeys);
         setHeldKey(key);
+        setDelay(20);
         break;
 
       case "ArrowUp":
