@@ -58,6 +58,7 @@ export default function Player() {
         Array<CellData>(boardSize.width).fill({
           filled: false,
           color: Color.Empty,
+          transparent: false,
         })
       )
     );
@@ -81,6 +82,7 @@ export default function Player() {
         playerBoard[newY][newX] = {
           color: player.tetromino.color,
           filled: true,
+          transparent: false,
         };
       })
     );
@@ -96,6 +98,15 @@ export default function Player() {
     }
 
     return [overlap, shouldMerge];
+  }
+
+  function getLowestPoint(board: CellData[][]) {
+    for (let row = player.pos.y; row <= boardSize.height; row++) {
+      if (testCollision({ x: 0, y: row - player.pos.y }, board)[0])
+        return row - 1;
+    }
+
+    return boardSize.height - 1;
   }
 
   function rotate(dir: number) {
@@ -212,5 +223,6 @@ export default function Player() {
     rotatePlayer,
     bag,
     nextBag,
+    getLowestPoint,
   ] as const;
 }

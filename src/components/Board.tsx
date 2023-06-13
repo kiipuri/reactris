@@ -16,6 +16,7 @@ export default function Board() {
         Array<CellData>(boardSize.width).fill({
           filled: false,
           color: Color.Empty,
+          transparent: false,
         })
       )
     )
@@ -29,14 +30,30 @@ export default function Board() {
     rotatePlayer,
     bag,
     nextBag,
+    getLowestPoint,
   ] = Player();
+
+  const lowestPoint = getLowestPoint(board);
 
   board.forEach(row =>
     row.forEach(cell => {
       if (cell.filled) return;
       cell.color = Color.Empty;
+      cell.transparent = false;
     })
   );
+
+  player.tetromino.grid.forEach((playerRow, y) => {
+    playerRow.forEach((playerCell, x) => {
+      if (!playerCell) return;
+
+      board[lowestPoint + y][player.pos.x + x] = {
+        color: player.tetromino.color,
+        filled: false,
+        transparent: true,
+      };
+    });
+  });
 
   player.tetromino.grid.forEach((row, y) =>
     row.forEach((cell, x) => {
@@ -45,6 +62,7 @@ export default function Board() {
       board[player.pos.y + y][player.pos.x + x] = {
         color: player.tetromino.color,
         filled: player.merged,
+        transparent: false,
       };
     })
   );
@@ -82,7 +100,7 @@ export default function Board() {
 
   useInterval(() => {
     function drop() {
-      updatePosition({ x: 0, y: 1 }, board);
+      // updatePosition({ x: 0, y: 1 }, board);
     }
 
     drop();
@@ -139,6 +157,10 @@ export default function Board() {
         updatePosition({ x: 0, y: -1 }, board);
         break;
 
+      case "KeyA":
+        rotatePlayer(2, board);
+        break;
+
       case "KeyZ":
         rotatePlayer(-1, board);
         break;
@@ -181,7 +203,13 @@ export default function Board() {
         onKeyDown={e => move(e)}>
         {board.map(row => {
           return row.map((cell, key) => {
-            return <Cell color={cell.color} key={key} />;
+            return (
+              <Cell
+                color={cell.color}
+                transparent={cell.transparent}
+                key={key}
+              />
+            );
           });
         })}
       </StyledBoard>
@@ -215,6 +243,8 @@ const StyledBoard = styled.div<{ width: number }>`
   grid-template-columns: repeat(${props => props.width}, auto);
   width: ${props => 50 * props.width}px;
   border: 2px solid red;
+  grid-gap: 1px;
+  background-color: #606060;
   float: left;
 `;
 
