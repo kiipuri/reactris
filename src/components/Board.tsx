@@ -71,12 +71,6 @@ export default function Board() {
     resetPlayer();
   }
 
-  const [heldKey, setHeldKey] = useState<React.KeyboardEvent | null>(null);
-  type keyHeldType = {
-    [key: string]: boolean;
-  };
-  const [heldKeys, setHeldKeys] = useState<keyHeldType>({});
-
   function useInterval(callback: any, delay: number | null) {
     const savedCallback = useRef<typeof callback>();
     // Remember the latest callback.
@@ -100,29 +94,35 @@ export default function Board() {
 
   useInterval(() => {
     function drop() {
-      // updatePosition({ x: 0, y: 1 }, board);
+      updatePosition({ x: 0, y: 1 }, board);
     }
 
     drop();
   }, 500);
 
+  const [heldKey, setHeldKey] = useState<React.KeyboardEvent | null>(null);
+  const [heldKeys, setHeldKeys] = useState(new Set());
+
   const [delay, setDelay] = useState(133);
-  const keyIsHeld = Object.values(heldKeys).some(key => key);
+
+  const [keysSize, setKeysSize] = useState(heldKeys.size);
   useInterval(
     () => {
       function doMove(key: React.KeyboardEvent) {
         move(key);
-        setDelay(1);
+        setDelay(10);
       }
-
-      if (Object.values(heldKeys).some(key => key) && heldKey) doMove(heldKey);
+      keysSize && heldKeys.has(heldKey?.code) && heldKey
+        ? doMove(heldKey)
+        : setDelay(133);
     },
-    keyIsHeld ? delay : null
+    keysSize !== 0 ? delay : null
   );
 
   const stopRepeat = (keycode: string) => {
-    heldKeys[keycode] = false;
+    heldKeys.delete(keycode);
     setHeldKeys(heldKeys);
+    setKeysSize(heldKeys.size);
     setDelay(133);
   };
 
@@ -133,22 +133,24 @@ export default function Board() {
     switch (keycode) {
       case "ArrowLeft":
         updatePosition({ x: -1, y: 0 }, board);
-        heldKeys[keycode] = true;
-        setHeldKeys(heldKeys);
+        setHeldKeys(heldKeys.add(keycode));
+        setKeysSize(heldKeys.size);
         setHeldKey(key);
+        setDelay(133);
         break;
 
       case "ArrowRight":
         updatePosition({ x: 1, y: 0 }, board);
-        heldKeys[keycode] = true;
-        setHeldKeys(heldKeys);
+        setHeldKeys(heldKeys.add(keycode));
+        setKeysSize(heldKeys.size);
         setHeldKey(key);
+        setDelay(133);
         break;
 
       case "ArrowDown":
         updatePosition({ x: 0, y: 1 }, board);
-        heldKeys[keycode] = true;
-        setHeldKeys(heldKeys);
+        setHeldKeys(heldKeys.add(keycode));
+        setKeysSize(heldKeys.size);
         setHeldKey(key);
         setDelay(20);
         break;
