@@ -29,8 +29,11 @@ export default function Board() {
     resetPlayer,
     rotatePlayer,
     bag,
+    setBag,
     nextBag,
     getLowestPoint,
+    usedHold,
+    setUsedHold,
   ] = Player();
 
   const lowestPoint = getLowestPoint(board);
@@ -94,7 +97,7 @@ export default function Board() {
 
   useInterval(() => {
     function drop() {
-      updatePosition({ x: 0, y: 1 }, board);
+      // updatePosition({ x: 0, y: 1 }, board);
     }
 
     drop();
@@ -116,7 +119,7 @@ export default function Board() {
         ? doMove(heldKey)
         : setDelay(133);
     },
-    keysSize !== 0 ? delay : null
+    keysSize ? delay : null
   );
 
   const stopRepeat = (keycode: string) => {
@@ -125,6 +128,38 @@ export default function Board() {
     setKeysSize(heldKeys.size);
     setDelay(133);
   };
+
+  const [heldPiece, setHeldPiece] = useState<string | null>(null);
+
+  function holdPiece() {
+    if (usedHold) return;
+
+    setUsedHold(true);
+    if (!heldPiece) {
+      setHeldPiece(player.tetromino.shape);
+      setPlayer({
+        ...player,
+        tetromino: {
+          ...tetrominos[bag[0]],
+          shape: bag[0],
+          orientation: 0,
+        },
+      });
+      bag.shift();
+      setBag([...bag]);
+    } else {
+      const currentPiece = player.tetromino.shape;
+      setPlayer({
+        ...player,
+        tetromino: {
+          ...tetrominos[heldPiece],
+          shape: heldPiece,
+          orientation: 0,
+        },
+      });
+      setHeldPiece(currentPiece);
+    }
+  }
 
   const move = (key: React.KeyboardEvent) => {
     if (key.repeat) return;
@@ -167,6 +202,7 @@ export default function Board() {
             };
           })
         );
+        setUsedHold(false);
         resetPlayer();
         break;
 
@@ -184,6 +220,11 @@ export default function Board() {
 
       case "KeyX":
         rotatePlayer(1, board);
+        break;
+
+      case "ShiftLeft":
+        holdPiece();
+        resetPlayer();
         break;
 
       // case "KeyR":
@@ -210,46 +251,81 @@ export default function Board() {
     }
   }, []);
 
+  function renderHoldPiece() {
+    if (!heldPiece) return;
+    return (
+      <StyledNextPiece width={tetrominos[heldPiece].grid.length} height={50}>
+        {heldPiece &&
+          tetrominos[heldPiece].grid.map(row => {
+            if (!row.some(cell => cell)) return;
+            return row.map((cell, key) => {
+              return (
+                <Cell
+                  color={cell ? tetrominos[heldPiece].color : Color.Empty}
+                  key={key}
+                />
+              );
+            });
+          })}
+      </StyledNextPiece>
+    );
+  }
+
   return (
     <>
-      <StyledBoard
-        width={boardSize.width}
-        ref={divRef}
-        tabIndex={0}
-        onKeyUp={e => stopRepeat(e.code)}
-        onKeyDown={e => move(e)}>
-        {board.map(row => {
-          return row.map((cell, key) => {
-            return (
-              <Cell
-                color={cell.color}
-                transparent={cell.transparent}
-                key={key}
-              />
-            );
-          });
-        })}
-      </StyledBoard>
-      <div>
-        {nextPieces.map((shape, i) => {
-          return (
-            <StyledNextPiece
-              width={tetrominos[shape].grid.length}
-              height={20}
-              key={i}>
-              {tetrominos[shape].grid.map(row => {
-                return row.map((cell, key) => {
-                  return (
-                    <Cell
-                      color={cell ? tetrominos[shape].color : Color.Empty}
-                      key={key}
-                    />
-                  );
-                });
-              })}
-            </StyledNextPiece>
-          );
-        })}
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          justifyItems: "center",
+          alignItems: "center",
+        }}>
+        <GameContainer>
+          <HoldPieceContainer height={50}>
+            {renderHoldPiece()}
+          </HoldPieceContainer>
+          <StyledBoard
+            width={boardSize.width}
+            ref={divRef}
+            tabIndex={0}
+            onKeyUp={e => stopRepeat(e.code)}
+            onKeyDown={e => move(e)}>
+            {board.map(row => {
+              return row.map((cell, key) => {
+                return (
+                  <Cell
+                    color={cell.color}
+                    transparent={cell.transparent}
+                    key={key}
+                  />
+                );
+              });
+            })}
+          </StyledBoard>
+          <NextPieceContainer height={50}>
+            {nextPieces.map((shape, i) => {
+              return (
+                <StyledNextPiece
+                  width={tetrominos[shape].grid.length}
+                  height={50}
+                  key={i}>
+                  {tetrominos[shape].grid.map(row => {
+                    if (!row.some(cell => cell)) return;
+                    return row.map((cell, key) => {
+                      return (
+                        <Cell
+                          color={cell ? tetrominos[shape].color : Color.Empty}
+                          key={key}
+                        />
+                      );
+                    });
+                  })}
+                </StyledNextPiece>
+              );
+            })}
+          </NextPieceContainer>
+        </GameContainer>
       </div>
     </>
   );
@@ -263,11 +339,51 @@ const StyledBoard = styled.div<{ width: number }>`
   grid-gap: 1px;
   background-color: #606060;
   float: left;
+  width: auto;
 `;
 
 const StyledNextPiece = styled.div<{ height: number; width: number }>`
   display: grid;
   grid-template-columns: repeat(${props => props.width}, auto);
   width: ${props => props.height * props.width}px;
-  border: 2px solid red;
+  margin: 10px 10px;
+  grid-gap: 1px;
+  /* background-color: #606060; */
+`;
+
+const NextPieceContainer = styled.div<{ height: number }>`
+  width: ${50 * 4}px;
+  height: ${props => props.height * 10 + 100}px;
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* align-items: center; */
+  /* justify-content: center; */
+  display: grid;
+  grid-template-rows: repeat(5, 20%);
+  background-color: ${Color.Empty};
+  padding: 20px;
+  /* margin: 20px; */
+`;
+
+const HoldPieceContainer = styled.div<{ height: number }>`
+  width: ${50 * 4}px;
+  height: ${props => props.height * 2}px;
+  /* justify-content: center; */
+  /* justify-items: center; */
+  /* align-items: center; */
+  display: flex;
+  /* flex-direction: column; */
+  align-items: center;
+  justify-content: center;
+  background-color: ${Color.Empty};
+  padding: 20px;
+  /* margin: 20px; */
+`;
+
+const GameContainer = styled.div`
+  display: flex;
+  justify-items: center;
 `;

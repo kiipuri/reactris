@@ -10,6 +10,8 @@ export default function Player() {
   const key = bag[0];
   const tetromino = { ...tetrominos[key] };
 
+  const [usedHold, setUsedHold] = useState(false);
+
   const [player, setPlayer] = useState({
     pos: { x: 0, y: 0 },
     tetromino: {
@@ -178,6 +180,8 @@ export default function Player() {
   }
 
   function mergePiece() {
+    setUsedHold(false);
+
     setPlayer({
       ...player,
       merged: true,
@@ -222,7 +226,10 @@ export default function Player() {
     resetPlayer,
     rotatePlayer,
     bag,
+    setBag,
     nextBag,
     getLowestPoint,
+    usedHold,
+    setUsedHold,
   ] as const;
 }

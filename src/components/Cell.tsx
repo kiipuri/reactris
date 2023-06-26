@@ -5,6 +5,7 @@ export const Cell = styled.div<{ transparent?: boolean }>`
   background-color: ${props => props.color};
   aspect-ratio: 1 / 1;
   opacity: ${props => (props.transparent ? 0.25 : 1)};
+  width: 50px;
 `;
 
 export type CellData = {
