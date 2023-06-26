@@ -132,21 +132,10 @@ export default function Board() {
   const [heldPiece, setHeldPiece] = useState<string | null>(null);
 
   function holdPiece() {
-    if (usedHold) return;
-
     setUsedHold(true);
     if (!heldPiece) {
       setHeldPiece(player.tetromino.shape);
-      setPlayer({
-        ...player,
-        tetromino: {
-          ...tetrominos[bag[0]],
-          shape: bag[0],
-          orientation: 0,
-        },
-      });
-      bag.shift();
-      setBag([...bag]);
+      resetPlayer();
     } else {
       const currentPiece = player.tetromino.shape;
       setPlayer({
@@ -155,6 +144,12 @@ export default function Board() {
           ...tetrominos[heldPiece],
           shape: heldPiece,
           orientation: 0,
+        },
+        pos: {
+          x:
+            boardSize.width / 2 -
+            Math.ceil(player.tetromino.grid[0].length / 2),
+          y: 0,
         },
       });
       setHeldPiece(currentPiece);
@@ -223,8 +218,8 @@ export default function Board() {
         break;
 
       case "ShiftLeft":
+        if (usedHold) return;
         holdPiece();
-        resetPlayer();
         break;
 
       // case "KeyR":
