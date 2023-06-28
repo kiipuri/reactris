@@ -3,6 +3,7 @@ import { Cell, CellData, Color } from "./Cell";
 import styled from "styled-components";
 import Player from "./Player";
 import { tetrominos } from "../helpers/tetrominos";
+import { useInterval } from "../hooks/useInterval";
 
 export const boardSize = {
   width: 10,
@@ -34,6 +35,7 @@ export default function Board() {
     getLowestPoint,
     usedHold,
     setUsedHold,
+    setMoveReset,
   ] = Player();
 
   const lowestPoint = getLowestPoint(board);
@@ -74,27 +76,6 @@ export default function Board() {
     resetPlayer();
   }
 
-  function useInterval(callback: any, delay: number | null) {
-    const savedCallback = useRef<typeof callback>();
-    // Remember the latest callback.
-    useEffect(() => {
-      savedCallback.current = callback;
-    }, [callback]);
-
-    // Set up the interval.
-    useEffect(() => {
-      function tick() {
-        savedCallback.current();
-      }
-      if (delay !== null) {
-        const id = setInterval(tick, delay);
-        return () => {
-          clearInterval(id);
-        };
-      }
-    }, [delay]);
-  }
-
   useInterval(() => {
     function drop() {
       // updatePosition({ x: 0, y: 1 }, board);
@@ -113,7 +94,7 @@ export default function Board() {
     () => {
       function doMove(key: React.KeyboardEvent) {
         move(key);
-        setDelay(10);
+        setDelay(100);
       }
       keysSize && heldKeys.has(heldKey?.code) && heldKey
         ? doMove(heldKey)
@@ -138,6 +119,7 @@ export default function Board() {
       resetPlayer();
     } else {
       const currentPiece = player.tetromino.shape;
+      setMoveReset(0);
       setPlayer({
         ...player,
         tetromino: {

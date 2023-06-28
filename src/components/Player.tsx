@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { kicks_i, kicks_jltsz } from "../helpers/kicks";
 import { tetrominos } from "../helpers/tetrominos";
+import { useInterval } from "../hooks/useInterval";
 import { boardSize } from "./Board";
 import { CellData, Color } from "./Cell";
 
@@ -9,6 +10,9 @@ export default function Player() {
   const [nextBag, setNextBag] = useState(getRandomizedBag());
   const key = bag[0];
   const tetromino = { ...tetrominos[key] };
+
+  const [mergeTimeout, setMergeTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [moveReset, setMoveReset] = useState(0);
 
   const [usedHold, setUsedHold] = useState(false);
 
@@ -38,11 +42,25 @@ export default function Player() {
   }
 
   function updatePosition(pos: { x: number; y: number }, board: CellData[][]) {
+    if (moveReset >= 15) {
+      mergePiece();
+    }
+
     const [collided, shouldMerge] = testCollision(pos, board);
     if (collided) {
-      if (shouldMerge) mergePiece();
+      if (mergeTimeout) return;
+
+      if (shouldMerge) {
+        const timeout = setTimeout(mergePiece, 5000);
+        setMergeTimeout(timeout);
+      }
       return;
     }
+
+    const collisionBelow = testCollision({ x: 0, y: 1 }, board)[1];
+    if (collisionBelow) setMoveReset(moveReset + 1);
+    if (mergeTimeout) clearInterval(mergeTimeout);
+    setMergeTimeout(null);
 
     setPlayer({
       ...player,
@@ -153,7 +171,7 @@ export default function Player() {
 
     let pos = { x: 0, y: 0 };
     if (testCollision({ x: 0, y: 0 }, board, tetromino)[0]) {
-      const kicks = key === "I" ? kicks_i : kicks_jltsz;
+      const kicks = player.tetromino.shape === "I" ? kicks_i : kicks_jltsz;
       const kick_tests =
         kicks[player.tetromino.orientation][
           (player.tetromino.orientation + dir + 4) % 4
@@ -177,6 +195,10 @@ export default function Player() {
         grid: tetromino,
       },
     });
+    if (mergeTimeout) clearInterval(mergeTimeout);
+    setMergeTimeout(null);
+
+    if (testCollision({ x: 0, y: 1 }, board)[1]) setMoveReset(moveReset + 1);
   }
 
   function mergePiece() {
@@ -207,6 +229,7 @@ export default function Player() {
       orientation: 0,
     };
 
+    setMoveReset(0);
     setPlayer({
       pos: {
         x: boardSize.width / 2 - Math.ceil(tetromino.grid[0].length / 2),
@@ -231,5 +254,6 @@ export default function Player() {
     getLowestPoint,
     usedHold,
     setUsedHold,
+    setMoveReset,
   ] as const;
 }
