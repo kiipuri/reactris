@@ -54,7 +54,7 @@ export default function Player() {
       return;
     }
 
-    if (mergeTimeout) clearInterval(mergeTimeout);
+    if (mergeTimeout && pos.x !== 0 && pos.y !== 0) clearInterval(mergeTimeout);
 
     setPlayer({
       ...player,
@@ -205,6 +205,22 @@ export default function Player() {
     if (mergeTimeout) clearInterval(mergeTimeout);
     setMergeTimeout(null);
 
+    const collisionBelow = testCollision(
+      { x: player.pos.x + pos.x, y: player.pos.y + pos.y + 1 },
+      board
+    )[1];
+    if (collisionBelow) {
+      setMoveReset(moveReset + 1);
+
+      const timeout = setTimeout(() => {
+        setPlayer({
+          ...playerRef.current,
+          merged: true,
+        });
+      }, 500);
+      setMergeTimeout(timeout);
+    }
+
     if (testCollision({ x: 0, y: 1 }, board)[1]) setMoveReset(moveReset + 1);
   }
 
@@ -248,6 +264,9 @@ export default function Player() {
         ...tetromino,
       },
     });
+
+    if (mergeTimeout) clearInterval(mergeTimeout);
+    setMergeTimeout(null);
   }
 
   return [
