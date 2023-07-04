@@ -67,6 +67,21 @@ export default function Board() {
     });
   });
 
+  board.forEach((row, y) => {
+    const filledRow = row.every(cell => cell.filled);
+    if (filledRow) {
+      row.forEach((_, x) => {
+        board[y][x] = {
+          color: Color.Empty,
+          filled: false,
+          transparent: false,
+        };
+      });
+
+      board.splice(0, 0, board.splice(y, 1)[0]);
+    }
+  });
+
   player.tetromino.grid.forEach((row, y) =>
     row.forEach((cell, x) => {
       if (!cell) return;

@@ -28,13 +28,4 @@ export enum Color {
   Red = "#ff0000",
   Empty = "#808080",
   Background = "#ffffff",
-  // Cyan = "cyan",
-  // Blue = "blue",
-  // Orange = "orange",
-  // Yellow = "yellow",
-  // Green = "green",
-  // Purple = "purple",
-  // Red = "red",
-  // Empty = "#808080",
-  // Background = "#ffffff",
 }
