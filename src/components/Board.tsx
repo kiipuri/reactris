@@ -7,8 +7,10 @@ import { useInterval } from "../hooks/useInterval";
 
 export const boardSize = {
   width: 10,
-  height: 15,
+  height: 22,
 };
+
+export const cellWidth = 35;
 
 export default function Board() {
   const [board, setBoard] = useState(
@@ -40,8 +42,13 @@ export default function Board() {
 
   const lowestPoint = getLowestPoint(board);
 
-  board.forEach(row =>
+  board.forEach((row, y) =>
     row.forEach(cell => {
+      if (y < 2) {
+        cell.color = Color.Background;
+        cell.transparent = false;
+        return;
+      }
       if (cell.filled) return;
       cell.color = Color.Empty;
       cell.transparent = false;
@@ -78,11 +85,11 @@ export default function Board() {
 
   useInterval(() => {
     function drop() {
-      // updatePosition({ x: 0, y: 1 }, board);
+      updatePosition({ x: 0, y: 1 }, board);
     }
 
     drop();
-  }, 500);
+  }, 900);
 
   const [heldKey, setHeldKey] = useState<React.KeyboardEvent | null>(null);
   const [heldKeys, setHeldKeys] = useState(new Set());
@@ -94,7 +101,7 @@ export default function Board() {
     () => {
       function doMove(key: React.KeyboardEvent) {
         move(key);
-        setDelay(100);
+        setDelay(10);
       }
       keysSize && heldKeys.has(heldKey?.code) && heldKey
         ? doMove(heldKey)
@@ -231,15 +238,28 @@ export default function Board() {
   function renderHoldPiece() {
     if (!heldPiece) return;
     return (
-      <StyledNextPiece width={tetrominos[heldPiece].grid.length} height={50}>
+      <StyledNextPiece
+        width={tetrominos[heldPiece].grid.length}
+        height={cellWidth}>
         {heldPiece &&
           tetrominos[heldPiece].grid.map(row => {
             if (!row.some(cell => cell)) return;
             return row.map((cell, key) => {
               return (
                 <Cell
-                  color={cell ? tetrominos[heldPiece].color : Color.Empty}
+                  cellColor={cell ? tetrominos[heldPiece].color : Color.Empty}
                   key={key}
+                  width={cellWidth}
+                  style={
+                    cell
+                      ? {
+                          border: "1px solid #606060",
+                          width: cellWidth + 2 + "px",
+                          margin: "-1px",
+                          boxSizing: "border-box",
+                        }
+                      : {}
+                  }
                 />
               );
             });
@@ -259,41 +279,76 @@ export default function Board() {
           alignItems: "center",
         }}>
         <GameContainer>
-          <HoldPieceContainer height={50}>
+          <HoldPieceContainer height={cellWidth}>
             {renderHoldPiece()}
           </HoldPieceContainer>
           <StyledBoard
             width={boardSize.width}
             ref={divRef}
             tabIndex={0}
+            style={{ marginTop: `-${cellWidth * 2}px` }}
             onKeyUp={e => stopRepeat(e.code)}
             onKeyDown={e => move(e)}>
-            {board.map(row => {
+            {board.map((row, y) => {
               return row.map((cell, key) => {
                 return (
                   <Cell
-                    color={cell.color}
+                    cellColor={cell.color}
+                    width={cellWidth}
                     transparent={cell.transparent}
                     key={key}
+                    style={
+                      cell.color !== Color.Empty &&
+                      cell.color !== Color.Background
+                        ? {
+                            border: "1px solid #606060",
+                            width: cellWidth + 2 + "px",
+                            marginTop: "-1px",
+                            marginLeft: "-1px",
+                            boxSizing: "border-box",
+                            zIndex: 10,
+                          }
+                        : {
+                            border:
+                              y >= 2
+                                ? "1px solid #606060"
+                                : "1px solid " + Color.Background,
+                            marginTop: "-1px",
+                            marginLeft: "-1px",
+                          }
+                    }
                   />
                 );
               });
             })}
           </StyledBoard>
-          <NextPieceContainer height={50}>
+          <NextPieceContainer height={cellWidth}>
             {nextPieces.map((shape, i) => {
               return (
                 <StyledNextPiece
                   width={tetrominos[shape].grid.length}
-                  height={50}
+                  height={cellWidth}
                   key={i}>
                   {tetrominos[shape].grid.map(row => {
                     if (!row.some(cell => cell)) return;
                     return row.map((cell, key) => {
                       return (
                         <Cell
-                          color={cell ? tetrominos[shape].color : Color.Empty}
+                          cellColor={
+                            cell ? tetrominos[shape].color : Color.Empty
+                          }
                           key={key}
+                          width={cellWidth}
+                          style={
+                            cell
+                              ? {
+                                  border: "1px solid #606060",
+                                  width: cellWidth + 2 + "px",
+                                  margin: "-1px",
+                                  boxSizing: "border-box",
+                                }
+                              : {}
+                          }
                         />
                       );
                     });
@@ -311,12 +366,11 @@ export default function Board() {
 const StyledBoard = styled.div<{ width: number }>`
   display: grid;
   grid-template-columns: repeat(${props => props.width}, auto);
-  width: ${props => 50 * props.width}px;
-  border: 2px solid red;
-  grid-gap: 1px;
+  width: ${props => cellWidth * props.width}px;
   background-color: #606060;
   float: left;
   width: auto;
+  outline: none;
 `;
 
 const StyledNextPiece = styled.div<{ height: number; width: number }>`
@@ -325,39 +379,28 @@ const StyledNextPiece = styled.div<{ height: number; width: number }>`
   width: ${props => props.height * props.width}px;
   margin: 10px 10px;
   grid-gap: 1px;
-  /* background-color: #606060; */
 `;
 
 const NextPieceContainer = styled.div<{ height: number }>`
-  width: ${50 * 4}px;
+  width: ${cellWidth * 4}px;
   height: ${props => props.height * 10 + 100}px;
   justify-content: center;
   justify-items: center;
   align-items: center;
-  /* display: flex; */
-  /* flex-direction: column; */
-  /* align-items: center; */
-  /* justify-content: center; */
   display: grid;
   grid-template-rows: repeat(5, 20%);
   background-color: ${Color.Empty};
   padding: 20px;
-  /* margin: 20px; */
 `;
 
 const HoldPieceContainer = styled.div<{ height: number }>`
-  width: ${50 * 4}px;
+  width: ${cellWidth * 4}px;
   height: ${props => props.height * 2}px;
-  /* justify-content: center; */
-  /* justify-items: center; */
-  /* align-items: center; */
   display: flex;
-  /* flex-direction: column; */
   align-items: center;
   justify-content: center;
   background-color: ${Color.Empty};
   padding: 20px;
-  /* margin: 20px; */
 `;
 
 const GameContainer = styled.div`

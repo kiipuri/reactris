@@ -1,11 +1,15 @@
 import React from "react";
 import styled from "styled-components";
 
-export const Cell = styled.div<{ transparent?: boolean }>`
-  background-color: ${props => props.color};
+export const Cell = styled.div<{
+  transparent?: boolean;
+  width: number;
+  cellColor: string;
+}>`
+  background-color: ${props =>
+    props.cellColor + (props.transparent ? "40" : "ff")};
   aspect-ratio: 1 / 1;
-  opacity: ${props => (props.transparent ? 0.25 : 1)};
-  width: 50px;
+  width: ${props => props.width}px;
 `;
 
 export type CellData = {
@@ -15,12 +19,22 @@ export type CellData = {
 };
 
 export enum Color {
-  Cyan = "cyan",
-  Blue = "blue",
-  Orange = "orange",
-  Yellow = "yellow",
-  Green = "green",
-  Purple = "purple",
-  Red = "red",
-  Empty = "gray",
+  Cyan = "#00ffff",
+  Blue = "#0000ff",
+  Orange = "#ffa500",
+  Yellow = "#ffff00",
+  Green = "#008000",
+  Purple = "#800080",
+  Red = "#ff0000",
+  Empty = "#808080",
+  Background = "#ffffff",
+  // Cyan = "cyan",
+  // Blue = "blue",
+  // Orange = "orange",
+  // Yellow = "yellow",
+  // Green = "green",
+  // Purple = "purple",
+  // Red = "red",
+  // Empty = "#808080",
+  // Background = "#ffffff",
 }

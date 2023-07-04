@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { kicks_i, kicks_jltsz } from "../helpers/kicks";
 import { tetrominos } from "../helpers/tetrominos";
 import { useInterval } from "../hooks/useInterval";
@@ -27,6 +27,9 @@ export default function Player() {
     merged: false,
   });
 
+  const playerRef = useRef(player);
+  playerRef.current = player;
+
   useEffect(() => {
     resetPlayer();
   }, []);
@@ -46,26 +49,30 @@ export default function Player() {
       mergePiece();
     }
 
-    const [collided, shouldMerge] = testCollision(pos, board);
+    const collided = testCollision(pos, board)[0];
     if (collided) {
-      if (mergeTimeout) return;
-
-      if (shouldMerge) {
-        const timeout = setTimeout(mergePiece, 5000);
-        setMergeTimeout(timeout);
-      }
       return;
     }
 
-    const collisionBelow = testCollision({ x: 0, y: 1 }, board)[1];
-    if (collisionBelow) setMoveReset(moveReset + 1);
     if (mergeTimeout) clearInterval(mergeTimeout);
-    setMergeTimeout(null);
 
     setPlayer({
       ...player,
       pos: { x: player.pos.x + pos.x, y: player.pos.y + pos.y },
     });
+
+    const collisionBelow = testCollision({ x: pos.x, y: pos.y + 1 }, board)[1];
+    if (collisionBelow) {
+      setMoveReset(moveReset + 1);
+
+      const timeout = setTimeout(() => {
+        setPlayer({
+          ...playerRef.current,
+          merged: true,
+        });
+      }, 500);
+      setMergeTimeout(timeout);
+    }
   }
 
   function testCollision(
@@ -114,7 +121,7 @@ export default function Player() {
       .some((cell, i) => cell.filled && board.flat()[i].filled);
 
     if (overlap) {
-      if (pos.y === 1) shouldMerge = true;
+      if (pos.y >= 1) shouldMerge = true;
     }
 
     return [overlap, shouldMerge];
@@ -201,13 +208,14 @@ export default function Player() {
     if (testCollision({ x: 0, y: 1 }, board)[1]) setMoveReset(moveReset + 1);
   }
 
-  function mergePiece() {
+  function mergePiece(_player?: typeof player) {
     setUsedHold(false);
 
-    setPlayer({
-      ...player,
-      merged: true,
-    });
+    if (_player) {
+      setPlayer({ ..._player, merged: true });
+    } else {
+      setPlayer({ ...player, merged: true });
+    }
   }
 
   function resetPlayer() {
