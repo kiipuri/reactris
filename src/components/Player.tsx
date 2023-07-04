@@ -54,7 +54,7 @@ export default function Player() {
       return;
     }
 
-    if (mergeTimeout && pos.x !== 0 && pos.y !== 0) clearInterval(mergeTimeout);
+    if (mergeTimeout) clearInterval(mergeTimeout);
 
     setPlayer({
       ...player,
