@@ -51,20 +51,11 @@ export default function Player() {
       mergePiece();
     }
 
-    // const collided = testCollision(pos, board)[0];
-    // if (collided) {
-    //   return;
-    // }
-
-    // if (mergeTimeout) clearInterval(mergeTimeout);
-
-    // setPlayer({
-    //   ...player,
-    //   pos: { x: player.pos.x + pos.x, y: player.pos.y + pos.y },
-    // });
-
-    if (mergeTimeout) clearInterval(mergeTimeout);
-    setMergeTimeout(null);
+    if (mergeTimeout) {
+      clearInterval(mergeTimeout);
+      setMergeTimeout(null);
+      return;
+    }
 
     const collisionBelow = testCollision({ x: pos.x, y: pos.y + 1 }, board)[1];
     if (collisionBelow) {
