@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { kicks_i, kicks_jltsz } from "../helpers/kicks";
 import { tetrominos } from "../helpers/tetrominos";
-import { useInterval } from "../hooks/useInterval";
 import { boardSize } from "./Board";
 import { CellData, Color } from "./Cell";
 
@@ -30,6 +29,9 @@ export default function Player() {
   const playerRef = useRef(player);
   playerRef.current = player;
 
+  const bagRef = useRef(bag);
+  bagRef.current = bag;
+
   useEffect(() => {
     resetPlayer();
   }, []);
@@ -49,17 +51,20 @@ export default function Player() {
       mergePiece();
     }
 
-    const collided = testCollision(pos, board)[0];
-    if (collided) {
-      return;
-    }
+    // const collided = testCollision(pos, board)[0];
+    // if (collided) {
+    //   return;
+    // }
+
+    // if (mergeTimeout) clearInterval(mergeTimeout);
+
+    // setPlayer({
+    //   ...player,
+    //   pos: { x: player.pos.x + pos.x, y: player.pos.y + pos.y },
+    // });
 
     if (mergeTimeout) clearInterval(mergeTimeout);
-
-    setPlayer({
-      ...player,
-      pos: { x: player.pos.x + pos.x, y: player.pos.y + pos.y },
-    });
+    setMergeTimeout(null);
 
     const collisionBelow = testCollision({ x: pos.x, y: pos.y + 1 }, board)[1];
     if (collisionBelow) {
@@ -72,6 +77,16 @@ export default function Player() {
         });
       }, 500);
       setMergeTimeout(timeout);
+    }
+
+    const collided = testCollision(pos, board)[0];
+    if (!collided) {
+      if (mergeTimeout) clearInterval(mergeTimeout);
+
+      setPlayer({
+        ...player,
+        pos: { x: player.pos.x + pos.x, y: player.pos.y + pos.y },
+      });
     }
   }
 
@@ -235,16 +250,16 @@ export default function Player() {
   }
 
   function resetPlayer() {
-    const key = bag[0];
+    const key = bagRef.current[0];
     const shape = { ...tetrominos[key] };
-    bag.shift();
+    bagRef.current.shift();
 
-    if (bag.length === 0) {
-      bag.push(...nextBag);
+    if (bagRef.current.length === 0) {
+      bagRef.current.push(...nextBag);
       setNextBag(getRandomizedBag());
     }
 
-    setBag([...bag]);
+    setBag([...bagRef.current]);
 
     const tetromino = {
       shape: key,
@@ -277,7 +292,9 @@ export default function Player() {
     rotatePlayer,
     bag,
     setBag,
+    bagRef,
     nextBag,
+    getRandomizedBag,
     getLowestPoint,
     usedHold,
     setUsedHold,

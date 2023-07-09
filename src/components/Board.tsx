@@ -12,6 +12,11 @@ export const boardSize = {
 
 export const cellWidth = 35;
 
+enum GameState {
+  Playing,
+  Ended,
+}
+
 export default function Board() {
   const [board, setBoard] = useState(
     Array.from(Array(boardSize.height), () =>
@@ -33,7 +38,9 @@ export default function Board() {
     rotatePlayer,
     bag,
     setBag,
+    bagRef,
     nextBag,
+    getRandomizedBag,
     getLowestPoint,
     usedHold,
     setUsedHold,
@@ -41,6 +48,7 @@ export default function Board() {
   ] = Player();
 
   const lowestPoint = getLowestPoint(board);
+  const [gameState, setGameState] = useState(GameState.Playing);
 
   board.forEach((row, y) =>
     row.forEach(cell => {
@@ -59,6 +67,7 @@ export default function Board() {
     playerRow.forEach((playerCell, x) => {
       if (!playerCell) return;
 
+      if (lowestPoint < 0) return;
       board[lowestPoint + y][player.pos.x + x] = {
         color: player.tetromino.color,
         filled: false,
@@ -86,6 +95,7 @@ export default function Board() {
     row.forEach((cell, x) => {
       if (!cell) return;
 
+      if (player.pos.y + y < 2 && player.merged) setGameState(GameState.Ended);
       board[player.pos.y + y][player.pos.x + x] = {
         color: player.tetromino.color,
         filled: player.merged,
@@ -98,13 +108,35 @@ export default function Board() {
     resetPlayer();
   }
 
-  useInterval(() => {
-    function drop() {
-      updatePosition({ x: 0, y: 1 }, board);
-    }
+  useInterval(
+    () => {
+      function drop() {
+        updatePosition({ x: 0, y: 1 }, board);
+      }
 
-    drop();
-  }, 900);
+      drop();
+    },
+    gameState === GameState.Playing ? 900 : null
+  );
+
+  function restartGame() {
+    setBoard(
+      Array.from(Array(boardSize.height), () =>
+        Array.from(
+          Array<CellData>(boardSize.width).fill({
+            filled: false,
+            color: Color.Empty,
+            transparent: false,
+          })
+        )
+      )
+    );
+
+    bagRef.current = getRandomizedBag();
+    resetPlayer();
+    setGameState(GameState.Playing);
+    divRef.current?.focus();
+  }
 
   const [heldKey, setHeldKey] = useState<React.KeyboardEvent | null>(null);
   const [heldKeys, setHeldKeys] = useState(new Set());
@@ -193,7 +225,6 @@ export default function Board() {
         player.tetromino.grid.forEach((row, y) =>
           row.forEach((cell, x) => {
             if (!cell) return;
-
             board[lowestPoint + y][player.pos.x + x] = {
               color: player.tetromino.color,
               filled: true,
@@ -283,8 +314,30 @@ export default function Board() {
     );
   }
 
+  const resultRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (gameState === GameState.Ended) {
+      resultRef.current?.focus();
+      divRef.current?.blur();
+    }
+  }, [gameState]);
+
   return (
     <>
+      <div
+        ref={resultRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0,0,0,0.5)",
+          position: "absolute",
+          zIndex: "100",
+          display: gameState === GameState.Ended ? "flex" : "none",
+          justifyContent: "center",
+          alignItems: "center",
+        }}>
+        <StyledButton onClick={() => restartGame()}>Restart</StyledButton>
+      </div>
       <div
         style={{
           height: "100%",
@@ -421,4 +474,15 @@ const HoldPieceContainer = styled.div<{ height: number }>`
 const GameContainer = styled.div`
   display: flex;
   justify-items: center;
+`;
+
+const StyledButton = styled.button`
+  background-color: black;
+  color: white;
+  padding: 2rem 4rem;
+  font-size: 3rem;
+  border: none;
+  &:hover {
+    background-color: gray;
+  }
 `;
