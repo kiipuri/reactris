@@ -51,42 +51,32 @@ export default function Player() {
       mergePiece();
     }
 
-    // const collided = testCollision(pos, board)[0];
-    // if (collided) {
-    //   return;
-    // }
-
-    // if (mergeTimeout) clearInterval(mergeTimeout);
-
-    // setPlayer({
-    //   ...player,
-    //   pos: { x: player.pos.x + pos.x, y: player.pos.y + pos.y },
-    // });
-
-    if (mergeTimeout) clearInterval(mergeTimeout);
-    setMergeTimeout(null);
-
-    const collisionBelow = testCollision({ x: pos.x, y: pos.y + 1 }, board)[1];
-    if (collisionBelow) {
-      setMoveReset(moveReset + 1);
-
-      const timeout = setTimeout(() => {
-        setPlayer({
-          ...playerRef.current,
-          merged: true,
-        });
-      }, 500);
-      setMergeTimeout(timeout);
-    }
-
     const collided = testCollision(pos, board)[0];
     if (!collided) {
-      if (mergeTimeout) clearInterval(mergeTimeout);
-
+      if (mergeTimeout) {
+        clearInterval(mergeTimeout);
+        setMergeTimeout(null);
+      }
       setPlayer({
-        ...player,
+        ...playerRef.current,
         pos: { x: player.pos.x + pos.x, y: player.pos.y + pos.y },
       });
+
+      const collisionBelow = testCollision(
+        { x: pos.x, y: pos.y + 1 },
+        board
+      )[1];
+      if (collisionBelow) {
+        setMoveReset(moveReset + 1);
+
+        const timeout = setTimeout(() => {
+          setPlayer({
+            ...playerRef.current,
+            merged: true,
+          });
+        }, 500);
+        setMergeTimeout(timeout);
+      }
     }
   }
 
