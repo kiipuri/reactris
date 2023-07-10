@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { Colorscheme } from "./Style";
 
 export const Cell = styled.div<{
   transparent?: boolean;
@@ -14,7 +15,7 @@ export const Cell = styled.div<{
 
 export type CellData = {
   filled: boolean;
-  color: Color;
+  color: Color | Colorscheme;
   transparent: boolean;
 };
 
@@ -26,6 +27,4 @@ export enum Color {
   Green = "#008000",
   Purple = "#800080",
   Red = "#ff0000",
-  Empty = "#808080",
-  Background = "#ffffff",
 }

@@ -3,6 +3,7 @@ import { kicks_i, kicks_jltsz } from "../helpers/kicks";
 import { tetrominos } from "../helpers/tetrominos";
 import { boardSize } from "./Board";
 import { CellData, Color } from "./Cell";
+import { Colorscheme } from "./Style";
 
 export default function Player() {
   const [bag, setBag] = useState(getRandomizedBag());
@@ -89,7 +90,7 @@ export default function Player() {
       Array.from(
         Array<CellData>(boardSize.width).fill({
           filled: false,
-          color: Color.Empty,
+          color: Colorscheme.c400,
           transparent: false,
         })
       )

@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Player from "./Player";
 import { tetrominos } from "../helpers/tetrominos";
 import { useInterval } from "../hooks/useInterval";
+import { Colorscheme, StyledButton } from "./Style";
 
 export const boardSize = {
   width: 10,
@@ -23,7 +24,7 @@ export default function Board() {
       Array.from(
         Array<CellData>(boardSize.width).fill({
           filled: false,
-          color: Color.Empty,
+          color: Colorscheme.c600,
           transparent: false,
         })
       )
@@ -53,12 +54,12 @@ export default function Board() {
   board.forEach((row, y) =>
     row.forEach(cell => {
       if (y < 2) {
-        cell.color = Color.Background;
+        cell.color = Colorscheme.cbase;
         cell.transparent = false;
         return;
       }
       if (cell.filled) return;
-      cell.color = Color.Empty;
+      cell.color = Colorscheme.c600;
       cell.transparent = false;
     })
   );
@@ -81,7 +82,7 @@ export default function Board() {
     if (filledRow) {
       row.forEach((_, x) => {
         board[y][x] = {
-          color: Color.Empty,
+          color: Colorscheme.c600,
           filled: false,
           transparent: false,
         };
@@ -125,7 +126,7 @@ export default function Board() {
         Array.from(
           Array<CellData>(boardSize.width).fill({
             filled: false,
-            color: Color.Empty,
+            color: Colorscheme.c600,
             transparent: false,
           })
         )
@@ -293,13 +294,15 @@ export default function Board() {
             return row.map((cell, key) => {
               return (
                 <Cell
-                  cellColor={cell ? tetrominos[heldPiece].color : Color.Empty}
+                  cellColor={
+                    cell ? tetrominos[heldPiece].color : Colorscheme.c600
+                  }
                   key={key}
                   width={cellWidth}
                   style={
                     cell
                       ? {
-                          border: "1px solid #606060",
+                          border: `1px solid ${Colorscheme.c800}`,
                           width: cellWidth + 2 + "px",
                           margin: "-1px",
                           boxSizing: "border-box",
@@ -366,10 +369,10 @@ export default function Board() {
                     transparent={cell.transparent}
                     key={key}
                     style={
-                      cell.color !== Color.Empty &&
-                      cell.color !== Color.Background
+                      cell.color !== Colorscheme.c600 &&
+                      cell.color !== Colorscheme.cbase
                         ? {
-                            border: "1px solid #606060",
+                            border: `1px solid ${Colorscheme.c800}`,
                             width: cellWidth + 2 + "px",
                             marginTop: "-1px",
                             marginLeft: "-1px",
@@ -379,8 +382,8 @@ export default function Board() {
                         : {
                             border:
                               y >= 2
-                                ? "1px solid #606060"
-                                : "1px solid " + Color.Background,
+                                ? `1px solid ${Colorscheme.c800}`
+                                : "1px solid " + Colorscheme.cbase,
                             marginTop: "-1px",
                             marginLeft: "-1px",
                           }
@@ -403,14 +406,14 @@ export default function Board() {
                       return (
                         <Cell
                           cellColor={
-                            cell ? tetrominos[shape].color : Color.Empty
+                            cell ? tetrominos[shape].color : Colorscheme.c600
                           }
                           key={key}
                           width={cellWidth}
                           style={
                             cell
                               ? {
-                                  border: "1px solid #606060",
+                                  border: `1px solid ${Colorscheme.c800}`,
                                   width: cellWidth + 2 + "px",
                                   margin: "-1px",
                                   boxSizing: "border-box",
@@ -457,7 +460,7 @@ const NextPieceContainer = styled.div<{ height: number }>`
   align-items: center;
   display: grid;
   grid-template-rows: repeat(5, 20%);
-  background-color: ${Color.Empty};
+  background-color: ${Colorscheme.c600};
   padding: 20px;
 `;
 
@@ -467,22 +470,11 @@ const HoldPieceContainer = styled.div<{ height: number }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${Color.Empty};
+  background-color: ${Colorscheme.c600};
   padding: 20px;
 `;
 
 const GameContainer = styled.div`
   display: flex;
   justify-items: center;
-`;
-
-const StyledButton = styled.button`
-  background-color: black;
-  color: white;
-  padding: 2rem 4rem;
-  font-size: 3rem;
-  border: none;
-  &:hover {
-    background-color: gray;
-  }
 `;
