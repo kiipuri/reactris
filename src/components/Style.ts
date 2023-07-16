@@ -56,3 +56,21 @@ export const StyledInput = styled.input`
 export const StyledText = styled.h1`
   color: ${Colorscheme.c200};
 `;
+
+export const PlayerInfo = styled.div`
+  color: ${Colorscheme.c200};
+  align-self: end;
+  margin: 1em;
+`;
+
+export const UITextPrimary = styled.span`
+  display: block;
+  font-size: 2.5rem;
+  text-align: end;
+`;
+
+export const UITextSecondary = styled.span`
+  display: block;
+  font-size: 2rem;
+  text-align: end;
+`;

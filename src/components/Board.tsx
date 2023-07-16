@@ -4,7 +4,13 @@ import styled from "styled-components";
 import Player from "./Player";
 import { tetrominos } from "../helpers/tetrominos";
 import { useInterval } from "../hooks/useInterval";
-import { Colorscheme, StyledButton } from "./Style";
+import {
+  Colorscheme,
+  PlayerInfo,
+  StyledButton,
+  UITextPrimary,
+  UITextSecondary,
+} from "./Style";
 
 export const boardSize = {
   width: 10,
@@ -48,6 +54,8 @@ export default function Board() {
     setMoveReset,
   ] = Player();
 
+  const [score, setScore] = useState(0);
+  const [time, setTime] = useState(0);
   const lowestPoint = getLowestPoint(board);
   const [gameState, setGameState] = useState(GameState.Playing);
 
@@ -77,9 +85,11 @@ export default function Board() {
     });
   });
 
+  let rowsToClear = 0;
   board.forEach((row, y) => {
     const filledRow = row.every(cell => cell.filled);
     if (filledRow) {
+      rowsToClear++;
       row.forEach((_, x) => {
         board[y][x] = {
           color: Colorscheme.c600,
@@ -90,6 +100,31 @@ export default function Board() {
 
       board.splice(0, 0, board.splice(y, 1)[0]);
     }
+  });
+
+  useEffect(() => {
+    let _score = 0;
+    switch (rowsToClear) {
+      case 1:
+        _score = 100;
+        break;
+
+      case 2:
+        _score = 300;
+        break;
+
+      case 3:
+        _score = 500;
+        break;
+
+      case 4:
+        _score = 800;
+        break;
+
+      default:
+        break;
+    }
+    setScore(score + _score);
   });
 
   player.tetromino.grid.forEach((row, y) =>
@@ -108,6 +143,17 @@ export default function Board() {
   if (player.merged) {
     resetPlayer();
   }
+
+  useInterval(
+    () => {
+      function timer() {
+        setTime(time + 30);
+      }
+
+      timer();
+    },
+    gameState === GameState.Playing ? 30 : null
+  );
 
   useInterval(
     () => {
@@ -135,6 +181,7 @@ export default function Board() {
 
     bagRef.current = getRandomizedBag();
     resetPlayer();
+    setTime(0);
     setGameState(GameState.Playing);
     divRef.current?.focus();
   }
@@ -350,9 +397,28 @@ export default function Board() {
           alignItems: "center",
         }}>
         <GameContainer>
-          <HoldPieceContainer height={cellWidth}>
-            {renderHoldPiece()}
-          </HoldPieceContainer>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}>
+            <HoldPieceContainer height={cellWidth}>
+              {renderHoldPiece()}
+            </HoldPieceContainer>
+            <div>
+              <PlayerInfo>
+                <UITextSecondary>Score</UITextSecondary>
+                <UITextPrimary>{score}</UITextPrimary>
+              </PlayerInfo>
+              <PlayerInfo>
+                <UITextSecondary>Time</UITextSecondary>
+                <UITextPrimary>
+                  {new Date(time).toISOString().slice(14, -1).slice(0, -1)}
+                </UITextPrimary>
+              </PlayerInfo>
+            </div>
+          </div>
           <StyledBoard
             width={boardSize.width}
             ref={divRef}
@@ -472,6 +538,7 @@ const HoldPieceContainer = styled.div<{ height: number }>`
   justify-content: center;
   background-color: ${Colorscheme.c600};
   padding: 20px;
+  align-self: end;
 `;
 
 const GameContainer = styled.div`
