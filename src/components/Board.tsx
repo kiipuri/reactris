@@ -11,6 +11,7 @@ import {
   UITextPrimary,
   UITextSecondary,
 } from "./Style";
+import { Base64 } from "js-base64";
 
 export const boardSize = {
   width: 10,
@@ -182,6 +183,7 @@ export default function Board() {
     bagRef.current = getRandomizedBag();
     resetPlayer();
     setTime(0);
+    setScore(0);
     setGameState(GameState.Playing);
     divRef.current?.focus();
   }
@@ -369,6 +371,31 @@ export default function Board() {
     if (gameState === GameState.Ended) {
       resultRef.current?.focus();
       divRef.current?.blur();
+      const username = sessionStorage.getItem("username");
+      const password = sessionStorage.getItem("password");
+      if (username && password) {
+        const auth = Base64.encode(
+          `${sessionStorage.getItem("username")}:${sessionStorage.getItem(
+            "password"
+          )}`
+        );
+
+        const reqOpts = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Basic " + auth,
+          },
+          body: JSON.stringify({
+            userId: 0,
+            playerScore: score,
+          }),
+        };
+
+        fetch("http://localhost:5267/Score", reqOpts).then(res => {
+          console.log(res);
+        });
+      }
     }
   }, [gameState]);
 
