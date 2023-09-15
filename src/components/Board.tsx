@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Player from "./Player";
 import { tetrominos } from "../helpers/tetrominos";
 import { useInterval } from "../hooks/useInterval";
+import PropTypes from "prop-types";
 import {
   Colorscheme,
   PlayerInfo,
@@ -12,6 +13,7 @@ import {
   UITextSecondary,
 } from "./Style";
 import { Base64 } from "js-base64";
+import { Pages } from "./front-page/FrontPage";
 
 export const boardSize = {
   width: 10,
@@ -25,7 +27,11 @@ enum GameState {
   Ended,
 }
 
-export default function Board() {
+export default function Board({
+  setPage,
+}: {
+  setPage: (...args: Pages[]) => void;
+}) {
   const [board, setBoard] = useState(
     Array.from(Array(boardSize.height), () =>
       Array.from(
@@ -414,6 +420,9 @@ export default function Board() {
           alignItems: "center",
         }}>
         <StyledButton onClick={() => restartGame()}>Restart</StyledButton>
+        <StyledButton onClick={() => setPage(Pages.FrontPage)}>
+          Go Back
+        </StyledButton>
       </div>
       <div
         style={{
@@ -526,6 +535,10 @@ export default function Board() {
     </>
   );
 }
+
+Board.propTypes = {
+  setPage: PropTypes.func,
+};
 
 const StyledBoard = styled.div<{ width: number }>`
   display: grid;

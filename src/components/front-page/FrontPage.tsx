@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Board from "../Board";
 import { Colorscheme, StyledButton, StyledInput, StyledText } from "../Style";
 
-enum Pages {
+export enum Pages {
   FrontPage,
   Login,
   Game,
@@ -46,6 +46,27 @@ export default function FrontPage() {
     });
   }
 
+  function handleRegister() {
+    if (!usernameRef.current?.value || !passwordRef.current?.value) {
+      alert("Need username and password");
+      return;
+    }
+
+    const username = usernameRef.current.value;
+    const password = passwordRef.current.value;
+    const reqOpts = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: username, hashedPassword: password }),
+    };
+
+    fetch("http://localhost:5267/User/register", reqOpts).then(res => {
+      if (res.ok) {
+        alert("Registered successfully");
+      } else alert("Couldn't register");
+    });
+  }
+
   function handlePlayGuest() {
     setLogged(false);
     setPage(Pages.Game);
@@ -62,6 +83,9 @@ export default function FrontPage() {
           </StyledButton>
           <StyledButton onClick={() => handleLogin()}>{"Login"}</StyledButton>
         </div>
+        <StyledButton onClick={() => handleRegister()}>
+          {"Register"}
+        </StyledButton>
       </>
     );
   }
@@ -99,8 +123,8 @@ export default function FrontPage() {
   }
 
   useEffect(() => {
-    fetchHighscores();
-  }, []);
+    if (page == Pages.Highscores) fetchHighscores();
+  }, [page]);
 
   function renderPage() {
     switch (page) {
@@ -111,7 +135,7 @@ export default function FrontPage() {
         return renderLogin();
 
       case Pages.Game:
-        return <Board />;
+        return <Board setPage={setPage} />;
 
       case Pages.Highscores:
         const jsx = (
